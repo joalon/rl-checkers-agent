@@ -3,63 +3,76 @@
 
 from random import choice, uniform
 
-from checkers import Checkers
+from tictactoe import TicTacToe
+
+import pickle
+import os
 
 
-class CheckersAgent:
-
+class TicTacToeAgent:
     def __init__(self, board):
         pass
 
     def emit_move(self):
         pass
 
-    def notify_game_ended(self):
+    def notify_game_ended(self, won: bool):
         pass
 
 
-class HumanCheckersAgent(CheckersAgent):
-    '''
-    A checkers agent that asks for input
-    '''
+class HumanTicTacToeAgent(TicTacToeAgent):
+    """
+    A tictactoe agent that asks for input
+    """
 
     def __init__(self, board):
         self.playing_board = board
 
     def emit_move(self):
         move = input("Make a move: ")
-        move_x, move_y = move.split(' ')
+        move_x, move_y = move.split(" ")
         return (int(move_x), int(move_y))
 
-    def notify_game_ended(self):
+    def notify_game_ended(self, won: bool):
         pass
 
 
-class RandomCheckersAgent(CheckersAgent):
-    '''
-    A checkers agent that makes random moves
-    '''
+class RandomTicTacToeAgent(TicTacToeAgent):
+    """
+    A tictactoe agent that makes random moves
+    """
+
     def __init__(self, board):
         self.playing_board = board
 
     def emit_move(self):
-        print("Making random move: ")
         return choice(self.playing_board.get_valid_moves())
 
-    def notify_game_ended(self):
+    def notify_game_ended(self, won: bool):
         pass
 
 
-class RLCheckersAgent(CheckersAgent):
-    '''
-    A checkers agent that makes moves according to a reinforcement learning algorithm
-    '''
+class RLTicTacToeAgent(TicTacToeAgent):
+    """
+    A tictactoe agent that makes moves according to a reinforcement learning algorithm
+    """
 
-    def __init__(self, board, moves_dict):
+    def __init__(self, board, moves_dict, store=True):
         self.playing_board = board
         self.moves_dict = moves_dict
         self.exploration_rate = 0.1
         self.visited_states = []
+        self.reward = 1.0
+        self.store = store
+
+        if store:
+            if os.path.exists('data.p'):
+                with open('data.p', 'rb') as fp:
+                    self.moves_dict = pickle.load(fp)
+            else:
+                self.moves_dict = {}
+
+
 
     def emit_move(self):
 
@@ -67,24 +80,43 @@ class RLCheckersAgent(CheckersAgent):
 
         if uniform(0, 1) <= self.exploration_rate:
             chosen_move = choice(valid_moves)
-            visited = Checkers(self.playing_board.get_state())
+            visited = TicTacToe(self.playing_board.get_state())
             visited.move(chosen_move)
-            self.visited_states.append(visited.get_state())
+            next_state = visited.get_state()
+            self.visited_states.append(next_state)
+            if next_state not in self.moves_dict.keys():
+                self.moves_dict.update({next_state: 0.5})
             return chosen_move
         else:
             considering_moves = []
             for move in valid_moves:
-                next_board = Checkers(self.playing_board.get_state())
+                next_board = TicTacToe(self.playing_board.get_state())
                 next_board.move(move)
                 next_state = next_board.get_state()
 
-                if next_state in self.moves_dict:
+                if next_state in self.moves_dict.keys():
                     considering_moves.append({move: self.moves_dict[next_state]})
                 else:
                     self.moves_dict.update({next_state: 0.5})
                     considering_moves.append({move: 0.5})
 
-            sorted_list = list(reversed(sorted(considering_moves, key=lambda dict: list(dict.values())[0])))
+            sorted_list = list(
+                reversed(
+                    sorted(considering_moves, key=lambda dict: list(dict.values())[0])
+                )
+            )
+            chosen_move = list(sorted_list[0].keys())[0]
+            next_board = TicTacToe(self.playing_board.get_state())
+            next_board.move(chosen_move)
+            next_state = next_board.get_state()
+            self.visited_states.append(next_state)
 
-            return list(sorted_list[0].keys())[0]
+            return chosen_move
 
+    def notify_game_ended(self, won: bool):
+        reward = self.reward / len(self.visited_states) if won else -(self.reward /len(self.visited_states))
+        for v in self.visited_states:
+            self.moves_dict[v] += reward
+        if self.store:
+            with open('data.p', 'wb') as fp:
+                pickle.dump(self.moves_dict, fp, protocol=pickle.HIGHEST_PROTOCOL)

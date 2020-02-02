@@ -3,34 +3,34 @@
 
 import unittest
 
-from checkers import Checkers
+from tictactoe import TicTacToe
 
 
-class TestCheckers(unittest.TestCase):
+class TestTicTacToe(unittest.TestCase):
 
     def test_diagonal_win(self):
 
-        checkers = Checkers()
+        tictactoe = TicTacToe()
 
-        checkers.move((0,0))
-        checkers.move((0,1))
-        checkers.move((1,1))
-        checkers.move((1,0))
-        checkers.move((2,2))
+        tictactoe.move((0,0))
+        tictactoe.move((0,1))
+        tictactoe.move((1,1))
+        tictactoe.move((1,0))
+        tictactoe.move((2,2))
 
-        self.assertEqual(checkers.game_has_ended(), (True, 'o'))
+        self.assertEqual(tictactoe.game_has_ended(), (True, 'o'))
 
     def test_horizontal_win(self):
 
-        checkers = Checkers()
+        tictactoe = TicTacToe()
 
-        checkers.move((0,0))
-        checkers.move((1,1))
-        checkers.move((0,1))
-        checkers.move((1,2))
-        checkers.move((0,2))
+        tictactoe.move((0,0))
+        tictactoe.move((1,1))
+        tictactoe.move((0,1))
+        tictactoe.move((1,2))
+        tictactoe.move((0,2))
 
-        self.assertEqual(checkers.game_has_ended(), (True, 'o'))
+        self.assertEqual(tictactoe.game_has_ended(), (True, 'o'))
 
 
 

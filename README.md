@@ -1,3 +1,3 @@
-# rl-checkers-agent
+# rl-tictactoe-agent
 
-A reinforcement learning agent for playing checkers
+A reinforcement learning agent for playing tic-tac-toe
