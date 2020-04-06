@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import pickle
+
 from tictactoe import TicTacToe
 from agents import HumanTicTacToeAgent, RandomTicTacToeAgent, RLTicTacToeAgent
 
+f = 'data.p'
+if os.path.exists(f):
+    with open(f, 'rb') as fp:
+        state_dict = pickle.load(fp)
+else:
+    state_dict = {}
+
 tictactoe = TicTacToe()
 
-rl_dict = {}
-
 Player1 = HumanTicTacToeAgent(tictactoe)
-Player2 = RandomTicTacToeAgent(tictactoe)
-Player3 = RLTicTacToeAgent(tictactoe, rl_dict)
+Player2 = RLTicTacToeAgent(tictactoe, state_dict)
 
 while True:
     print(tictactoe)

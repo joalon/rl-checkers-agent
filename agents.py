@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from random import choice, uniform
-
-from tictactoe import TicTacToe
-
 import pickle
 import os
+
+from random import choice, uniform
+from tictactoe import TicTacToe
 
 
 class TicTacToeAgent:
@@ -57,22 +56,12 @@ class RLTicTacToeAgent(TicTacToeAgent):
     A tictactoe agent that makes moves according to a reinforcement learning algorithm
     """
 
-    def __init__(self, board, moves_dict, store=True):
+    def __init__(self, board, moves_dict):
         self.playing_board = board
         self.moves_dict = moves_dict
-        self.exploration_rate = 0.1
+        self.exploration_rate = 0.33
         self.visited_states = []
         self.reward = 1.0
-        self.store = store
-
-        if store:
-            if os.path.exists('data.p'):
-                with open('data.p', 'rb') as fp:
-                    self.moves_dict = pickle.load(fp)
-            else:
-                self.moves_dict = {}
-
-
 
     def emit_move(self):
 
@@ -94,7 +83,10 @@ class RLTicTacToeAgent(TicTacToeAgent):
                 next_board.move(move)
                 next_state = next_board.get_state()
 
-                if next_state in self.moves_dict.keys():
+                if next_board.game_has_ended():
+                    self.moves_dict.update({next_state: 1})
+                    considering_moves.append({move: 1.0})
+                elif next_state in self.moves_dict.keys():
                     considering_moves.append({move: self.moves_dict[next_state]})
                 else:
                     self.moves_dict.update({next_state: 0.5})
@@ -115,8 +107,11 @@ class RLTicTacToeAgent(TicTacToeAgent):
 
     def notify_game_ended(self, won: bool):
         reward = self.reward / len(self.visited_states) if won else -(self.reward /len(self.visited_states))
-        for v in self.visited_states:
-            self.moves_dict[v] += reward
-        if self.store:
-            with open('data.p', 'wb') as fp:
-                pickle.dump(self.moves_dict, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        for visited in self.visited_states:
+            if self.moves_dict[visited] + reward > 0 and self.moves_dict[visited] + reward < 1:
+                self.moves_dict[visited] += reward
+            else:
+                if reward < 0:
+                    self.moves_dict[visited] = 0.0
+                else:
+                    self.moves_dict[visited] = 1.0

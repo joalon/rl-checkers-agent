@@ -9,9 +9,9 @@ class TicTacToe:
         if not state:
             self.board = [[".", ".", "."], [".", ".", "."], [".", ".", "."]]
 
-            self.to_move = "o"
+            self.to_move = "x"
         else:
-            self.to_move = "o" if state.count("x") == state.count("o") else "x"
+            self.to_move = "x" if state.count("o") == state.count("x") else "o"
             self.board = []
             new_line = []
 
@@ -104,7 +104,7 @@ class TicTacToe:
         elif (
             self.board[0][2] != "."
             and self.board[0][2] == self.board[1][1]
-            and self.board[1][1] == self.board[0][2]
+            and self.board[1][1] == self.board[2][0]
         ):
             return (True, self.board[0][2])
 
